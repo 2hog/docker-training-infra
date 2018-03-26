@@ -15,19 +15,21 @@ variable "vm_count" {
 
 variable "vm_password" {}
 
+# We are creating a single Virtual Network for all VMs needed for the workshop
+# because of Azure's rate limiting policies.
 resource "azurerm_virtual_network" "workshop_node_virtual_network" {
-  count               = "${var.vm_count}"
-  name                = "workshop-node-${format("%02d", count.index)}-virtual-network"
+  name                = "workshop-virtual-network"
   address_space       = ["10.0.0.0/16"]
   location            = "${var.location}"
   resource_group_name = "${var.resource_group}"
 }
 
+# We are creating a single Subnet for all VMs needed for the workshop
+# because of Azure's rate limiting policies.
 resource "azurerm_subnet" "workshop_node_subnet" {
-  count                = "${var.vm_count}"
-  name                 = "workshop-node-${format("%02d", count.index)}-subnet"
+  name                 = "workshop-node-subnet"
   resource_group_name  = "${var.resource_group}"
-  virtual_network_name = "${element(azurerm_virtual_network.workshop_node_virtual_network.*.name, count.index)}"
+  virtual_network_name = "${azurerm_virtual_network.workshop_node_virtual_network.name}"
   address_prefix       = "10.0.2.0/24"
 }
 
@@ -79,7 +81,8 @@ resource "azurerm_public_ip" "workshop_node_network_public_ip" {
   name                         = "workshop-node-${format("%02d", count.index)}-network-public-ip"
   location                     = "${var.location}"
   resource_group_name          = "${var.resource_group}"
-  public_ip_address_allocation = "static"
+  domain_name_label            = "swarm-workshop-2hog-${format("%02d", count.index)}"
+  public_ip_address_allocation = "dynamic"
 }
 
 resource "azurerm_network_interface" "workshop_node_network_interface" {
@@ -91,7 +94,7 @@ resource "azurerm_network_interface" "workshop_node_network_interface" {
 
   ip_configuration {
     name                          = "workshop-node-${format("%02d", count.index)}-ip-configuration"
-    subnet_id                     = "${element(azurerm_subnet.workshop_node_subnet.*.id, count.index)}"
+    subnet_id                     = "${azurerm_subnet.workshop_node_subnet.id}"
     private_ip_address_allocation = "dynamic"
     public_ip_address_id          = "${element(azurerm_public_ip.workshop_node_network_public_ip.*.id, count.index)}"
   }
@@ -145,9 +148,12 @@ resource "azurerm_virtual_machine" "workshop_node_vm" {
   provisioner "remote-exec" {
     script = "scripts/install-docker"
 
+    # We need to connect through the Public IP's Fully Qualified Domain Name
+    # because the actual IP address has not been populated to Terraform yet,
+    # as it's dynamically allocated.
     connection {
       type        = "ssh"
-      host        = "${element(azurerm_public_ip.workshop_node_network_public_ip.*.ip_address, count.index)}"
+      host        = "${element(azurerm_public_ip.workshop_node_network_public_ip.*.fqdn, count.index)}"
       user        = "workshop"
       private_key = "${file("~/.ssh/id_rsa")}"
     }
