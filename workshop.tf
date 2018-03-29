@@ -34,8 +34,7 @@ resource "azurerm_subnet" "workshop_node_subnet" {
 }
 
 resource "azurerm_network_security_group" "workshop_node_network_security_group" {
-  count               = "${var.vm_count}"
-  name                = "workshop-node-${format("%02d", count.index)}-network-security-group"
+  name                = "workshop-node-network-security-group"
   location            = "${var.location}"
   resource_group_name = "${var.resource_group}"
 
@@ -74,6 +73,66 @@ resource "azurerm_network_security_group" "workshop_node_network_security_group"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
+
+  security_rule {
+    name                       = "AllowFiveThousand"
+    priority                   = 1030
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "5000"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "AllowEightThousand"
+    priority                   = 1040
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "8000"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "AllowEightyEighty"
+    priority                   = 1050
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "8080"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "AllowEightEightEightEight"
+    priority                   = 1060
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "8888"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "AllowNineNineNineNine"
+    priority                   = 1070
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "9999"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
 }
 
 resource "azurerm_public_ip" "workshop_node_network_public_ip" {
@@ -90,7 +149,7 @@ resource "azurerm_network_interface" "workshop_node_network_interface" {
   name                      = "workshop-node-${format("%02d", count.index)}-network-interface"
   location                  = "${var.location}"
   resource_group_name       = "${var.resource_group}"
-  network_security_group_id = "${element(azurerm_network_security_group.workshop_node_network_security_group.*.id, count.index)}"
+  network_security_group_id = "${azurerm_network_security_group.workshop_node_network_security_group.id}"
 
   ip_configuration {
     name                          = "workshop-node-${format("%02d", count.index)}-ip-configuration"
