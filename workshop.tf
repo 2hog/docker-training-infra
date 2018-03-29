@@ -127,7 +127,7 @@ resource "azurerm_virtual_machine" "workshop_node_vm" {
   }
 
   os_profile {
-    computer_name  = "workshop-node"
+    computer_name  = "workshop-node-${format("%02d", count.index)}"
     admin_username = "workshop"
     admin_password = "${var.vm_password}"
   }
