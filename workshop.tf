@@ -133,6 +133,18 @@ resource "azurerm_network_security_group" "workshop_node_network_security_group"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
+
+  security_rule {
+    name                       = "AllowNinetyNinety"
+    priority                   = 1078
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "9090"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
 }
 
 resource "azurerm_public_ip" "workshop_node_network_public_ip" {
@@ -186,7 +198,7 @@ resource "azurerm_virtual_machine" "workshop_node_vm" {
   }
 
   os_profile {
-    computer_name  = "workshop-node-${format("%02d", count.index)}"
+    computer_name  = "workshop-node-${count.index % 3 + 1}"
     admin_username = "workshop"
     admin_password = "${var.vm_password}"
   }
@@ -196,10 +208,16 @@ resource "azurerm_virtual_machine" "workshop_node_vm" {
     disable_password_authentication = false
 
     # Add my public key to all Virtual Machines created for debugging reasons.
-    ssh_keys = [{
-      path     = "/home/workshop/.ssh/authorized_keys"
-      key_data = "${file("~/.ssh/id_rsa.pub")}"
-    }]
+    ssh_keys = [
+      {
+        path     = "/home/workshop/.ssh/authorized_keys"
+        key_data = "${file("~/.ssh/id_rsa.pub")}"
+      },
+      {
+        path     = "/home/workshop/.ssh/authorized_keys"
+        key_data = "${file("~/akalipetis.pub")}"
+      },
+    ]
   }
 
   # After creating the Virtual Machine, provision it by installing Docker
