@@ -1,0 +1,7 @@
+vm_password = "workshop-password-2020"
+
+vm_count = "9"
+
+resource_group = "workshop-vda"
+
+dns-namespace = "swarm-workshop-vda"

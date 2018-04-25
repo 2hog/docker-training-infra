@@ -15,6 +15,11 @@ variable "vm_count" {
 
 variable "vm_password" {}
 
+variable "dns-namespace" {
+  type    = "string"
+  default = "swarm-workshop-2hog"
+}
+
 # We are creating a single Virtual Network for all VMs needed for the workshop
 # because of Azure's rate limiting policies.
 resource "azurerm_virtual_network" "workshop_node_virtual_network" {
@@ -152,7 +157,7 @@ resource "azurerm_public_ip" "workshop_node_network_public_ip" {
   name                         = "workshop-node-${format("%02d", count.index)}-network-public-ip"
   location                     = "${var.location}"
   resource_group_name          = "${var.resource_group}"
-  domain_name_label            = "swarm-workshop-2hog-${format("%02d", count.index)}"
+  domain_name_label            = "${var.dns-namespace}-${format("%02d", count.index / 3 + 1)}-${format("%02d", count.index % 3 + 1)}"
   public_ip_address_allocation = "dynamic"
 }
 
@@ -211,11 +216,7 @@ resource "azurerm_virtual_machine" "workshop_node_vm" {
     ssh_keys = [
       {
         path     = "/home/workshop/.ssh/authorized_keys"
-        key_data = "${file("~/.ssh/id_rsa.pub")}"
-      },
-      {
-        path     = "/home/workshop/.ssh/authorized_keys"
-        key_data = "${file("~/akalipetis.pub")}"
+        key_data = "${file("id_rsa.pub")}"
       },
     ]
   }
@@ -232,7 +233,7 @@ resource "azurerm_virtual_machine" "workshop_node_vm" {
       type        = "ssh"
       host        = "${element(azurerm_public_ip.workshop_node_network_public_ip.*.fqdn, count.index)}"
       user        = "workshop"
-      private_key = "${file("~/.ssh/id_rsa")}"
+      password    = "${var.vm_password}"
     }
   }
 }
