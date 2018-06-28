@@ -1,0 +1,13 @@
+vm_count = "9"
+# Your Digital Ocean token
+# https://cloud.digitalocean.com/settings/api/token
+do_token = "do-token-here"
+# A password that you'll use to log in to your Droplets
+vm_password = "code-learn-1742"
+# The top-level domain to use
+cloudflare_domain = "akalipetis.com"
+# Your cloudflare email
+cloudflare_email = "akalipetis@gmail.com"
+# Your Cloudflare token
+# https://dash.cloudflare.com/profile
+cloudflare_token = "cf-token-here"
