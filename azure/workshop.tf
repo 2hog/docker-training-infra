@@ -20,6 +20,21 @@ variable "dns-namespace" {
   default = "swarm-workshop-2hog"
 }
 
+variable "cloudflare_domain" {}
+
+variable "cloudflare_email" {}
+
+variable "cloudflare_token" {}
+
+resource "azurerm_resource_group" "resource_group" {
+  name     = "${var.resource_group}"
+  location = "${var.location}"
+
+  tags {
+    environment = "workshop"
+  }
+}
+
 # We are creating a single Virtual Network for all VMs needed for the workshop
 # because of Azure's rate limiting policies.
 resource "azurerm_virtual_network" "workshop_node_virtual_network" {
@@ -178,11 +193,11 @@ resource "azurerm_network_interface" "workshop_node_network_interface" {
 
 resource "azurerm_virtual_machine" "workshop_node_vm" {
   count                         = "${var.vm_count}"
-  name                          = "workshop-node-${format("%02d", count.index)}-vm"
+  name                          = "workshop-vm-${format("%02d", count.index / 3)}-${format("%02d", count.index % 3)}"
   location                      = "${var.location}"
   resource_group_name           = "${var.resource_group}"
   network_interface_ids         = ["${element(azurerm_network_interface.workshop_node_network_interface.*.id, count.index)}"]
-  vm_size                       = "Standard_D2s_v3"
+  vm_size                       = "Standard_DS1_v2"
   delete_os_disk_on_termination = true
 
   storage_image_reference {
@@ -216,7 +231,7 @@ resource "azurerm_virtual_machine" "workshop_node_vm" {
     ssh_keys = [
       {
         path     = "/home/workshop/.ssh/authorized_keys"
-        key_data = "${file("id_rsa.pub")}"
+        key_data = "${file("~/.ssh/id_rsa.pub")}"
       },
     ]
   }
@@ -236,4 +251,18 @@ resource "azurerm_virtual_machine" "workshop_node_vm" {
       password    = "${var.vm_password}"
     }
   }
+}
+
+provider "cloudflare" {
+  email = "${var.cloudflare_email}"
+  token = "${var.cloudflare_token}"
+}
+
+resource "cloudflare_record" "workshop_dns_record" {
+  count  = "${var.vm_count}"
+  domain = "${var.cloudflare_domain}"
+  name   = "${element(azurerm_virtual_machine.workshop_node_vm.*.name, count.index)}"
+  value  = "${element(azurerm_public_ip.workshop_node_network_public_ip.*.fqdn, count.index)}"
+  type   = "CNAME"
+  ttl    = 3600
 }

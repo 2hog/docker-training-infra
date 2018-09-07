@@ -18,5 +18,8 @@ sudo add-apt-repository \
    stable"
 sudo apt-get update
 sudo apt-get install -y docker-ce
-sleep 30
-echo "root:${vm_password}" | chpasswd
+
+useradd -m workshop -s /bin/bash
+addgroup workshop sudo
+addgroup workshop docker
+echo "workshop:${vm_password}" | chpasswd
