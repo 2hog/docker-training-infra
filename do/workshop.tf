@@ -61,6 +61,7 @@ resource "digitalocean_droplet" "workshop_node_vm" {
   monitoring         = true
   private_networking = true
   user_data          = "${data.template_file.user_data.rendered}"
+  ssh_keys           = "${var.do_ssh_keys}"
 }
 
 provider "cloudflare" {
