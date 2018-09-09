@@ -11,6 +11,16 @@ variable "vm_offset" {
   default = 0
 }
 
+variable "per_user" {
+  type    = "string"
+  default = 3
+}
+
+variable "do_ssh_keys" {
+  type    = "list"
+  default = []
+}
+
 variable "region" {
   type    = "string"
   default = "fra1"
@@ -30,7 +40,7 @@ variable "vm_password" {}
 
 # Template file for user data
 data "template_file" "user_data" {
-  template = "${file("scripts/install-docker")}"
+  template = "${file("scripts/bootstrap")}"
   vars {
     vm_password= "${var.vm_password}"
   }
@@ -44,7 +54,7 @@ provider "digitalocean" {
 # Create the droplets
 resource "digitalocean_droplet" "workshop_node_vm" {
   count              = "${var.vm_count}"
-  name               = "workshop-vm-${format("%02d", count.index / 3 + "${var.vm_offset}")}-${format("%02d", count.index % 3)}"
+  name               = "workshop-vm-${format("%02d", count.index / "${var.per_user}" + "${var.vm_offset}")}-${format("%02d", count.index % "${var.per_user}")}"
   region             = "${var.region}"
   image              = "ubuntu-16-04-x64"
   size               = "${var.size}"
@@ -64,5 +74,14 @@ resource "cloudflare_record" "workshop_dns_record" {
   name   = "${element(digitalocean_droplet.workshop_node_vm.*.name, count.index)}"
   value  = "${element(digitalocean_droplet.workshop_node_vm.*.ipv4_address, count.index)}"
   type   = "A"
-  ttl    = 3600
+  ttl    = 300
+}
+
+resource "cloudflare_record" "workshop_dns_record_subdomains" {
+  count  = "${var.vm_count}"
+  domain = "${var.cloudflare_domain}"
+  name   = "*.${element(digitalocean_droplet.workshop_node_vm.*.name, count.index)}"
+  value  = "${element(digitalocean_droplet.workshop_node_vm.*.name, count.index)}.${var.cloudflare_domain}"
+  type   = "CNAME"
+  ttl    = 300
 }
