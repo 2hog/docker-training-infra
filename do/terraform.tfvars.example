@@ -1,9 +1,18 @@
+# Configure VMs
 vm_count = "9"
+per_user = "3"
+
+# Configure DO
 # Your Digital Ocean token
 # https://cloud.digitalocean.com/settings/api/token
 do_token = "do-token-here"
+# Your Digital Ocean keys, if you want to add any
+# https://developers.digitalocean.com/documentation/v2/#list-all-keys
+do_ssh_keys = ["fingerprint-here"]
 # A password that you'll use to log in to your Droplets
 vm_password = "code-learn-1742"
+
+# Configure CloudFlare
 # The top-level domain to use
 cloudflare_domain = "akalipetis.com"
 # Your cloudflare email
