@@ -18,7 +18,7 @@ add-apt-repository \
    $(lsb_release -cs) \
    stable"
 apt-get update
-apt-get install -y docker-ce
+apt-get install -y docker-ce=18.06.1~ce~3-0~ubuntu
 
 # Setup workshop user
 useradd -m workshop -s /bin/bash
@@ -40,4 +40,16 @@ kubeadm config images pull
 sysctl net.bridge.bridge-nf-call-iptables=1
 echo "source <(kubectl completion bash)" >> /home/workshop/.bashrc
 systemctl daemon-reload
+systemctl enable kubelet
 systemctl restart kubelet
+
+sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+systemctl restart sshd
+
+kubeadm init
+mkdir -p /home/workshop/.kube
+cp -i /etc/kubernetes/admin.conf /home/workshop/.kube/config
+chown workshop:workshop /home/workshop/.kube/config
+
+kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+kubectl --kubeconfig=/etc/kubernetes/admin.conf rollout status daemonset weave-net -n kube-system
