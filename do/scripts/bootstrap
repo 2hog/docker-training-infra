@@ -25,6 +25,9 @@ useradd -m workshop -s /bin/bash
 addgroup workshop sudo
 addgroup workshop docker
 echo "workshop:${vm_password}" | chpasswd
+mkdir -p /home/workshop
+cp -r /root/.ssh /home/workshop
+chown -R workshop:workshop /home/workshop
 
 # Install kubelet, kubectl and kubeadm
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
@@ -46,10 +49,12 @@ systemctl restart kubelet
 sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
 systemctl restart sshd
 
-kubeadm init
-mkdir -p /home/workshop/.kube
-cp -i /etc/kubernetes/admin.conf /home/workshop/.kube/config
-chown workshop:workshop /home/workshop/.kube/config
+if [[ "${init_kube}" == "1" && $(hostname) == *-00 ]]; then
+    kubeadm init
+    mkdir -p /home/workshop/.kube
+    cp -i /etc/kubernetes/admin.conf /home/workshop/.kube/config
+    chown workshop:workshop /home/workshop/.kube/config
 
-kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
-kubectl --kubeconfig=/etc/kubernetes/admin.conf rollout status daemonset weave-net -n kube-system
+    kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+    kubectl --kubeconfig=/etc/kubernetes/admin.conf rollout status daemonset weave-net -n kube-system
+fi
