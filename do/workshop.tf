@@ -38,11 +38,17 @@ variable "size" {
 
 variable "vm_password" {}
 
+variable "init_kube" {
+  type    = "string"
+  default = "1"
+}
+
 # Template file for user data
 data "template_file" "user_data" {
   template = "${file("scripts/bootstrap")}"
   vars {
-    vm_password= "${var.vm_password}"
+    vm_password = "${var.vm_password}"
+    init_kube   = "${var.init_kube}"
   }
 }
 

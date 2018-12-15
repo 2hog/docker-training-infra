@@ -1,6 +1,7 @@
 # Configure VMs
 vm_count = "9"
 per_user = "3"
+init_kube = "1"
 
 # Configure DO
 # Your Digital Ocean token
