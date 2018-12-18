@@ -63,4 +63,5 @@ if [[ "${init_kube}" == "1" && $(hostname) == *-00 ]]; then
 
     kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
     kubectl --kubeconfig=/etc/kubernetes/admin.conf rollout status daemonset weave-net -n kube-system
+    sed -i '/- kube-apiserver/a\    - --service-node-port-range=80-32767' /etc/kubernetes/manifests/kube-apiserver.yaml
 fi
