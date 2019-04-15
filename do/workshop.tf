@@ -46,6 +46,7 @@ variable "init_kube" {
 # Template file for user data
 data "template_file" "user_data" {
   template = "${file("scripts/bootstrap")}"
+
   vars {
     vm_password = "${var.vm_password}"
     init_kube   = "${var.init_kube}"
@@ -60,7 +61,7 @@ provider "digitalocean" {
 # Create the droplets
 resource "digitalocean_droplet" "workshop_node_vm" {
   count              = "${var.vm_count}"
-  name               = "workshop-vm-${format("%02d", count.index / "${var.per_user}" + "${var.vm_offset}")}-${format("%02d", count.index % "${var.per_user}")}"
+  name               = "workshop-vm-${format("%02d", count.index / "${var.per_user}" + "${var.vm_offset}")}-${count.index % "${var.per_user}" + 1}"
   region             = "${var.region}"
   image              = "ubuntu-16-04-x64"
   size               = "${var.size}"

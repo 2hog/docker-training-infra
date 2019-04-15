@@ -29,6 +29,13 @@ mkdir -p /home/workshop
 cp -r /root/.ssh /home/workshop
 chown -R workshop:workshop /home/workshop
 
+# Install Docker Compose
+curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+
+# Install htop
+apt-get install -y htop
+
 # Install kubelet, kubectl and kubeadm
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
