@@ -14,6 +14,8 @@ do_ssh_keys = ["fingerprint-here"]
 vm_password = "code-learn-1742"
 
 # Configure CloudFlare
+# The zone ID to use
+cloudflare_zone_id = "XXX"
 # The top-level domain to use
 cloudflare_domain = "akalipetis.com"
 # Your cloudflare email

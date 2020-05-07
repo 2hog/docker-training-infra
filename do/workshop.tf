@@ -2,6 +2,8 @@ variable "do_token" {}
 
 variable "cloudflare_domain" {}
 
+variable "cloudflare_zone_id" {}
+
 variable "cloudflare_email" {}
 
 variable "cloudflare_token" {}
@@ -73,12 +75,12 @@ resource "digitalocean_droplet" "workshop_node_vm" {
 
 provider "cloudflare" {
   email = "${var.cloudflare_email}"
-  token = "${var.cloudflare_token}"
+  api_key = "${var.cloudflare_token}"
 }
 
 resource "cloudflare_record" "workshop_dns_record" {
   count  = "${var.vm_count}"
-  domain = "${var.cloudflare_domain}"
+  zone_id = "${var.cloudflare_zone_id}"
   name   = "${element(digitalocean_droplet.workshop_node_vm.*.name, count.index)}"
   value  = "${element(digitalocean_droplet.workshop_node_vm.*.ipv4_address, count.index)}"
   type   = "A"
@@ -87,7 +89,7 @@ resource "cloudflare_record" "workshop_dns_record" {
 
 resource "cloudflare_record" "workshop_dns_record_subdomains" {
   count  = "${var.vm_count}"
-  domain = "${var.cloudflare_domain}"
+  zone_id = "${var.cloudflare_zone_id}"
   name   = "*.${element(digitalocean_droplet.workshop_node_vm.*.name, count.index)}"
   value  = "${element(digitalocean_droplet.workshop_node_vm.*.name, count.index)}.${var.cloudflare_domain}"
   type   = "CNAME"
