@@ -113,3 +113,15 @@ resource "cloudflare_record" "workshop_dns_record_subdomains" {
   type    = "CNAME"
   ttl     = 300
 }
+
+output "hourly_price" {
+  value = digitalocean_droplet.workshop_node_vm[0].price_hourly * var.vm_count
+}
+
+output "daily_price" {
+  value = 24 * digitalocean_droplet.workshop_node_vm[0].price_hourly * var.vm_count
+}
+
+output "montly_price" {
+  value = digitalocean_droplet.workshop_node_vm[0].price_monthly * var.vm_count
+}
