@@ -81,7 +81,7 @@ provider "digitalocean" {
 # Create the droplets
 resource "digitalocean_droplet" "workshop_node_vm" {
   count              = var.vm_count
-  name               = format("workshop-vm-%02.0f-%.0f", 1 + (count.index + var.vm_offset) / var.per_user, (count.index + var.vm_offset) % var.per_user + 1)
+  name               = format("workshop-vm-%02.0f-%.0f", floor((count.index + var.vm_offset) / var.per_user) + 1, (count.index + var.vm_offset) % var.per_user + 1)
   region             = var.region
   image              = "ubuntu-20-04-x64"
   size               = var.size
